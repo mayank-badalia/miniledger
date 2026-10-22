@@ -13,6 +13,7 @@ types.setTypeParser(1082, (value) => value);
 
 const connectionString =
   process.env.DATABASE_URL ??
+  process.env.POSTGRES_URL ?? // the name Vercel's Postgres integration injects
   "postgres://miniledger:miniledger@localhost:5434/miniledger";
 
 // Hosted Postgres (Neon, and most cloud providers) require TLS. Local Docker

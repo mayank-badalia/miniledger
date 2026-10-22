@@ -28,6 +28,10 @@ export function createApp() {
     jsonParser(req, res, next);
   });
 
+  // A tiny health check, handy for "is the server up?". Declared BEFORE the
+  // database middleware so it answers even if the DB isn't configured yet.
+  app.get("/api/health", (_req, res) => res.json({ ok: true }));
+
   // Make sure the database tables exist. ensureSchema() caches its work, so
   // this is effectively free after the first request on each instance.
   app.use(async (_req, _res, next) => {
@@ -38,9 +42,6 @@ export function createApp() {
       next(err);
     }
   });
-
-  // A tiny health check, handy for "is the server up?".
-  app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
   // Feature routes.
   app.use("/api/auth", authRoutes);
