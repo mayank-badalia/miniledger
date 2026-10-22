@@ -1,0 +1,20 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+*.tsbuildinfo
+
+# env & secrets
+.env
+
+# uploaded receipt photos (keep the folder, not its contents)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# logs & os junk
+*.log
+.DS_Store
+
+# playwright screenshots captured during local testing
+web/.playwright-mcp/

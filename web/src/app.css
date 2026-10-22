@@ -1,0 +1,379 @@
+/* =====================================================================
+   Layout & component styles. The design tokens live in index.css; this
+   file arranges them into the login screen and the dashboard.
+   ===================================================================== */
+
+/* ---------- Keyframes ---------------------------------------------- */
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.55;
+  }
+}
+
+/* =====================================================================
+   LOGIN
+   ===================================================================== */
+.login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* a soft amber glow top-right so the paper isn't flat */
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(232, 181, 75, 0.28), transparent 60%),
+    var(--paper);
+}
+.login__hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding-block: 10vh 6vh;
+  gap: 1.1rem;
+}
+.login__title {
+  font-size: clamp(2.6rem, 8vw, 5.2rem);
+  max-width: 16ch;
+}
+.login__title em {
+  color: var(--amber-deep);
+  font-style: italic;
+}
+.login__sub {
+  max-width: 44ch;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+}
+.login__card {
+  margin-top: 1.5rem;
+  padding: 1.6rem;
+  width: 100%;
+  max-width: 420px;
+}
+.login__btn {
+  width: 100%;
+  margin-top: 1rem;
+}
+.login__hint,
+.login__sub {
+  line-height: 1.55;
+}
+.login__hint {
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.login__code {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+.login__back {
+  display: block;
+  margin: 0.9rem auto 0;
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+/* =====================================================================
+   DASHBOARD
+   ===================================================================== */
+.dash {
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+.dash__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 1.4rem;
+}
+.dash__logo {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+.dash__logo em {
+  color: var(--amber-deep);
+  font-style: italic;
+}
+.dash__who {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.dash__phone {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.dash__logout {
+  background: none;
+  border: 1.5px solid rgba(19, 33, 27, 0.25);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: background 0.25s, color 0.25s;
+}
+.dash__logout:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.dash__hero {
+  padding-block: 4vh 5vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.dash__title {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+}
+
+/* Summary card ------------------------------------------------------ */
+.summary {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px; /* the gap shows the card's background as hairlines */
+  background: rgba(19, 33, 27, 0.12);
+  border: 1.5px solid rgba(19, 33, 27, 0.12);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.summary__item {
+  background: var(--paper);
+  padding: 1.5rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.summary__value {
+  font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+}
+.summary__value--amber {
+  color: var(--amber-deep);
+}
+.summary__value--alert {
+  color: var(--alert);
+}
+
+/* Sections ---------------------------------------------------------- */
+.dash__section {
+  padding-block: 3.5vh;
+}
+.dash__sectionhead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.4rem;
+}
+.dash__h2 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+.dash__empty {
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+
+/* Reminders --------------------------------------------------------- */
+.reminders {
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid rgba(19, 33, 27, 0.12);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.reminder {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.3rem;
+  background: var(--paper);
+  border-bottom: 1px solid rgba(19, 33, 27, 0.1);
+}
+.reminder:last-child {
+  border-bottom: none;
+}
+.reminder--overdue {
+  background: var(--alert-soft);
+}
+.reminder__name {
+  font-weight: 600;
+}
+.reminder__amt {
+  font-size: 1rem;
+}
+.reminder__due {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  min-width: 9ch;
+  text-align: right;
+}
+.reminder--overdue .reminder__due {
+  color: var(--alert);
+  font-weight: 600;
+}
+
+/* Loan list --------------------------------------------------------- */
+.loans {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+.loan {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: 1.4rem;
+  background: var(--paper);
+  border: 1.5px solid rgba(19, 33, 27, 0.14);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
+}
+.loan:hover {
+  transform: translateY(-4px);
+}
+.loan--overdue {
+  border-color: var(--alert);
+  box-shadow: 0 18px 50px -24px rgba(215, 80, 60, 0.6);
+}
+.loan--repaid {
+  opacity: 0.6;
+}
+.loan__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.loan__name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+.loan__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.loan__status--overdue {
+  color: var(--alert);
+}
+.loan__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--alert);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.loan__bottom {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.loan__amount {
+  font-size: 1.8rem;
+}
+.loan__due {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.loan__receipt {
+  display: block;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid rgba(19, 33, 27, 0.14);
+}
+.loan__receipt img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.loan__receipt:hover img {
+  transform: scale(1.06);
+}
+.loan__btn {
+  align-self: flex-start;
+  padding: 0.65rem 1.3rem;
+  font-size: 0.9rem;
+}
+
+/* Add form ---------------------------------------------------------- */
+.addform {
+  padding: 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 560px;
+}
+.addform__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+.addform__submit {
+  align-self: flex-start;
+}
+
+/* Footer ------------------------------------------------------------ */
+.dash__footer {
+  padding-top: 3rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+/* =====================================================================
+   Responsive: collapse grids on narrow screens (phones).
+   ===================================================================== */
+@media (max-width: 760px) {
+  .summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .loans {
+    grid-template-columns: 1fr;
+  }
+  .addform__row {
+    grid-template-columns: 1fr;
+  }
+  .reminder {
+    grid-template-columns: 1fr auto;
+    row-gap: 0.3rem;
+  }
+  .reminder__due {
+    grid-column: 2;
+    text-align: right;
+  }
+}

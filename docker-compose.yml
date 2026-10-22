@@ -1,0 +1,18 @@
+# One-command PostgreSQL for local development.
+#   docker compose up -d
+# This gives you a database that matches server/.env.example.
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: miniledger-db
+    environment:
+      POSTGRES_USER: miniledger
+      POSTGRES_PASSWORD: miniledger
+      POSTGRES_DB: miniledger
+    ports:
+      - "5434:5432" # host 5434 -> container 5432 (5434 avoids clashing with other local Postgres)
+    volumes:
+      - miniledger_pgdata:/var/lib/postgresql/data
+
+volumes:
+  miniledger_pgdata:
