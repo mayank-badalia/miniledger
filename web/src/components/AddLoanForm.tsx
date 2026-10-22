@@ -25,6 +25,13 @@ export function AddLoanForm({ onCreated }: { onCreated: (loan: Loan) => void }) 
   // the old URL whenever it changes, and when the form unmounts, to avoid
   // memory leaks.
   function onPickFile(file: File | null) {
+    // Keep receipts small: hosted (serverless) request bodies are capped, so
+    // we reject anything over 2 MB up front with a clear message.
+    if (file && file.size > 2 * 1024 * 1024) {
+      toast.show("That image is over 2 MB — please pick a smaller one.", "error");
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
     setReceipt(file);
     setPreview((old) => {
       if (old) URL.revokeObjectURL(old);
@@ -130,46 +137,67 @@ export function AddLoanForm({ onCreated }: { onCreated: (loan: Loan) => void }) 
       <div className="field">
         <label>Receipt photo (optional)</label>
 
-        {/* The real file input is hidden; the big dropzone below is the
-            clickable label for it. Clicking anywhere on the box opens the
-            file picker. Once a photo is chosen we show a preview instead. */}
+        {/* The real file input is visually hidden. We open it PROGRAMMATICALLY
+            by clicking the box below (via the ref) — this is the most reliable
+            way across browsers. Clicking the box works whether it's empty or
+            already showing a preview (so you can swap the photo). */}
         <input
           ref={fileRef}
-          id="receipt"
           type="file"
           accept="image/*"
           className="dropzone__input"
+          tabIndex={-1}
           onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
         />
 
-        {preview ? (
-          <div className="dropzone dropzone--filled">
-            <img className="dropzone__thumb" src={preview} alt="Receipt preview" />
-            <div className="dropzone__meta">
-              <span className="dropzone__name">{receipt?.name}</span>
-              <span className="dropzone__size">
-                {receipt ? `${Math.round(receipt.size / 1024)} KB` : ""}
-              </span>
-            </div>
-            <button type="button" className="dropzone__remove" onClick={clearFile}>
-              Remove
-            </button>
-          </div>
-        ) : (
-          <label htmlFor="receipt" className="dropzone">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 16V7m0 0-3.5 3.5M12 7l3.5 3.5M5 20h14"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Click to add a photo</span>
-            <span className="dropzone__hint">PNG or JPG, up to 5&nbsp;MB</span>
-          </label>
-        )}
+        <div
+          className={"dropzone" + (preview ? " dropzone--filled" : "")}
+          role="button"
+          tabIndex={0}
+          onClick={() => fileRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileRef.current?.click();
+            }
+          }}
+        >
+          {preview ? (
+            <>
+              <img className="dropzone__thumb" src={preview} alt="Receipt preview" />
+              <div className="dropzone__meta">
+                <span className="dropzone__name">{receipt?.name}</span>
+                <span className="dropzone__size">
+                  {receipt ? `${Math.round(receipt.size / 1024)} KB · tap to change` : ""}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="dropzone__remove"
+                onClick={(e) => {
+                  e.stopPropagation(); // don't re-open the picker
+                  clearFile();
+                }}
+              >
+                Remove
+              </button>
+            </>
+          ) : (
+            <>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M12 16V7m0 0-3.5 3.5M12 7l3.5 3.5M5 20h14"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Click to add a photo</span>
+              <span className="dropzone__hint">PNG or JPG, up to 2&nbsp;MB</span>
+            </>
+          )}
+        </div>
       </div>
 
       <Magnetic>
