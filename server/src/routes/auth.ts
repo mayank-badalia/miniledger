@@ -15,8 +15,18 @@ router.post("/request-otp", async (req, res) => {
     return res.status(400).json({ error: parsed.error.issues[0].message });
   }
 
-  await createOtp(parsed.data.phone);
-  res.json({ ok: true, message: "OTP sent — check the server log." });
+  const code = await createOtp(parsed.data.phone);
+
+  // DEMO MODE (opt-in): on a public deployment nobody can see the server log,
+  // so a visitor couldn't log in. When DEMO_SHOW_OTP=true we return the code
+  // to the browser so the login screen can show it. This is intentionally
+  // insecure (anyone can log in as any number) and is meant only for a demo.
+  const demo = process.env.DEMO_SHOW_OTP === "true";
+  res.json({
+    ok: true,
+    message: "OTP sent — check the server log.",
+    ...(demo ? { devCode: code } : {}),
+  });
 });
 
 // POST /api/auth/verify-otp  { phone, code }

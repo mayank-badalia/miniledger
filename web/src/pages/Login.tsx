@@ -52,9 +52,18 @@ export function Login() {
     }
     setBusy(true);
     try {
-      await api.post("/auth/request-otp", { phone: phone.trim() });
+      const res = await api.post<{ devCode?: string }>("/auth/request-otp", {
+        phone: phone.trim(),
+      });
       setStep("code");
-      toast.show("OTP sent — check the server terminal 👀");
+      // In demo mode the server returns the code so we can show it here;
+      // otherwise it's printed to the server terminal.
+      if (res.devCode) {
+        setCode(res.devCode);
+        toast.show(`Demo mode — your code is ${res.devCode}`);
+      } else {
+        toast.show("OTP sent — check the server terminal 👀");
+      }
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Failed", "error");
     } finally {
