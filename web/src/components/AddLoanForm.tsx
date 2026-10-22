@@ -2,7 +2,7 @@
 // It validates on the client (same rules as the server) for instant
 // feedback, then posts as multipart/form-data so the photo can ride along.
 
-import { useState, FormEvent } from "react";
+import { useState, useRef, useEffect, FormEvent } from "react";
 import { api, Loan } from "../lib/api";
 import { useToast } from "./Toast";
 import { Magnetic } from "./Magnetic";
@@ -14,8 +14,33 @@ export function AddLoanForm({ onCreated }: { onCreated: (loan: Loan) => void }) 
   const [amount, setAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [receipt, setReceipt] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null); // local image preview
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // We keep a ref to the hidden <input> so we can clear it after saving.
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // When a photo is chosen, make a temporary preview URL for it. We free
+  // the old URL whenever it changes, and when the form unmounts, to avoid
+  // memory leaks.
+  function onPickFile(file: File | null) {
+    setReceipt(file);
+    setPreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return file ? URL.createObjectURL(file) : null;
+    });
+  }
+  function clearFile() {
+    onPickFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+  useEffect(() => {
+    // Cleanup the preview URL when the component goes away.
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   // Mirror the server's rules so users see mistakes before submitting.
   function validate(): boolean {
@@ -50,7 +75,7 @@ export function AddLoanForm({ onCreated }: { onCreated: (loan: Loan) => void }) 
       setFriend("");
       setAmount("");
       setDueDate("");
-      setReceipt(null);
+      clearFile();
       setErrors({});
       (e.target as HTMLFormElement).reset();
     } catch (err) {
@@ -103,14 +128,48 @@ export function AddLoanForm({ onCreated }: { onCreated: (loan: Loan) => void }) 
       </div>
 
       <div className="field">
-        <label htmlFor="receipt">Receipt photo (optional)</label>
+        <label>Receipt photo (optional)</label>
+
+        {/* The real file input is hidden; the big dropzone below is the
+            clickable label for it. Clicking anywhere on the box opens the
+            file picker. Once a photo is chosen we show a preview instead. */}
         <input
+          ref={fileRef}
           id="receipt"
-          className="input"
           type="file"
           accept="image/*"
-          onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
+          className="dropzone__input"
+          onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
         />
+
+        {preview ? (
+          <div className="dropzone dropzone--filled">
+            <img className="dropzone__thumb" src={preview} alt="Receipt preview" />
+            <div className="dropzone__meta">
+              <span className="dropzone__name">{receipt?.name}</span>
+              <span className="dropzone__size">
+                {receipt ? `${Math.round(receipt.size / 1024)} KB` : ""}
+              </span>
+            </div>
+            <button type="button" className="dropzone__remove" onClick={clearFile}>
+              Remove
+            </button>
+          </div>
+        ) : (
+          <label htmlFor="receipt" className="dropzone">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M12 16V7m0 0-3.5 3.5M12 7l3.5 3.5M5 20h14"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Click to add a photo</span>
+            <span className="dropzone__hint">PNG or JPG, up to 5&nbsp;MB</span>
+          </label>
+        )}
       </div>
 
       <Magnetic>

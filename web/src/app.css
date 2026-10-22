@@ -348,6 +348,94 @@
   align-self: flex-start;
 }
 
+/* Receipt dropzone (replaces the plain file input) --------------------- */
+/* Hide the real <input type=file> but keep it focusable/accessible. */
+.dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  border: 1.5px dashed rgba(19, 33, 27, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.25s, background 0.25s, color 0.25s;
+}
+.dropzone:hover {
+  border-color: var(--amber-deep);
+  background: rgba(232, 181, 75, 0.1);
+  color: var(--ink);
+}
+.dropzone__hint {
+  font-weight: 400;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+/* After a file is picked: a row with a thumbnail, its name, and Remove. */
+.dropzone--filled {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+  cursor: default;
+  border-style: solid;
+  border-color: rgba(19, 33, 27, 0.18);
+}
+.dropzone__thumb {
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.dropzone__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* lets the filename truncate instead of overflowing */
+  flex: 1;
+}
+.dropzone__name {
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dropzone__size {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.dropzone__remove {
+  flex-shrink: 0;
+  background: none;
+  border: 1.5px solid rgba(215, 80, 60, 0.4);
+  color: var(--alert);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+.dropzone__remove:hover {
+  background: var(--alert);
+  color: var(--paper);
+}
+
 /* Footer ------------------------------------------------------------ */
 .dash__footer {
   padding-top: 3rem;
