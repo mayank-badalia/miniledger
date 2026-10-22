@@ -3,8 +3,7 @@
 // every query in this project is something you can read and explain.
 
 import { Pool, types } from "pg";
-import fs from "fs";
-import path from "path";
+import { SCHEMA_SQL } from "./schema";
 
 // By default pg turns a DATE column into a JS Date at local midnight, which
 // can shift the day when converted to UTC JSON (e.g. the 10th shows as the
@@ -12,12 +11,22 @@ import path from "path";
 // (1082 is Postgres's internal id for the DATE type.)
 types.setTypeParser(1082, (value) => value);
 
-// A connection "pool" keeps a few Postgres connections open and reuses
-// them. We create ONE pool for the whole app and import it everywhere.
+const connectionString =
+  process.env.DATABASE_URL ??
+  "postgres://miniledger:miniledger@localhost:5434/miniledger";
+
+// Hosted Postgres (Neon, and most cloud providers) require TLS. Local Docker
+// does not. We turn SSL on when the connection string asks for it, or when
+// we're running on Vercel.
+const needsSsl =
+  !!process.env.VERCEL ||
+  /sslmode=require/.test(connectionString) ||
+  /\.neon\.tech/.test(connectionString);
+
+// A connection "pool" keeps a few Postgres connections open and reuses them.
 export const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL ??
-    "postgres://miniledger:miniledger@localhost:5434/miniledger",
+  connectionString,
+  ssl: needsSsl ? { rejectUnauthorized: false } : undefined,
 });
 
 // Small helper so routes can write `db.query(sql, params)`.
@@ -25,10 +34,19 @@ export const db = {
   query: (text: string, params?: unknown[]) => pool.query(text, params),
 };
 
-// Run schema.sql once on startup to make sure our tables exist.
-export async function initDb(): Promise<void> {
-  const schemaPath = path.join(__dirname, "schema.sql");
-  const sql = fs.readFileSync(schemaPath, "utf8");
-  await pool.query(sql);
-  console.log("[db] schema ready");
+// Create the tables if they don't exist. We cache the promise so that on a
+// serverless platform the schema runs at most once per warm instance, no
+// matter how many requests come in.
+let schemaReady: Promise<void> | null = null;
+
+export function ensureSchema(): Promise<void> {
+  if (!schemaReady) {
+    schemaReady = pool.query(SCHEMA_SQL).then(() => {
+      console.log("[db] schema ready");
+    });
+  }
+  return schemaReady;
 }
+
+// Kept for the local server entry point (reads nicely as "set up the DB").
+export const initDb = ensureSchema;

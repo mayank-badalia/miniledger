@@ -25,7 +25,7 @@ live summary, wrapped in a cinematic, animated interface.
 - 🧾 Summary card at the top + form to add entries.
 
 **Bonus (both implemented)**
-- 📷 **Receipt photo upload** per loan (stored on disk, shown as a thumbnail).
+- 📷 **Receipt photo upload** per loan (stored in the database, shown as a thumbnail).
 - 🔔 **Reminders view** — a "Needs your attention" strip of unpaid loans,
   soonest‑due first, overdue ones in red.
 - ✔️ **Input validation** (client *and* server) and **unit tests**.
@@ -42,8 +42,8 @@ live summary, wrapped in a cinematic, animated interface.
 | Layer     | Tech                                                        |
 |-----------|-------------------------------------------------------------|
 | Backend   | Node + TypeScript, Express, **PostgreSQL** (raw SQL via `pg`) |
-| Auth      | Mock OTP (in‑memory) + JWT                                   |
-| Uploads   | `multer` → `server/uploads/`                                |
+| Auth      | Mock OTP (stored in the DB) + JWT                           |
+| Uploads   | `multer` (in memory) → receipt bytes stored in Postgres     |
 | Validation| `zod`                                                       |
 | Tests     | `vitest`                                                    |
 | Frontend  | React + TypeScript + Vite                                  |
@@ -59,14 +59,18 @@ switch — so the code stays easy to read and explain.
 
 ```
 miniledger/
-├── docker-compose.yml        # one-command PostgreSQL
+├── docker-compose.yml        # one-command PostgreSQL (local dev)
+├── vercel.json               # Vercel config (build web + serve /api function)
+├── package.json              # root deps for the Vercel serverless function
+├── api/
+│   └── index.ts              # Vercel entry — reuses the Express app
 ├── server/                   # the API
 │   ├── src/
-│   │   ├── index.ts          # entry point (start DB + listen)
-│   │   ├── app.ts            # builds the Express app
-│   │   ├── db.ts             # pg pool + runs schema.sql
-│   │   ├── schema.sql        # the two tables (users, loans)
-│   │   ├── auth.ts           # mock OTP store + JWT helpers
+│   │   ├── index.ts          # LOCAL entry point (ensure DB + listen)
+│   │   ├── app.ts            # builds the Express app (shared with /api)
+│   │   ├── db.ts             # pg pool + ensureSchema()
+│   │   ├── schema.ts         # the tables (users, otps, loans) as SQL
+│   │   ├── auth.ts           # mock OTP (DB-backed) + JWT helpers
 │   │   ├── summary.ts        # computeSummary() — pure, unit-tested
 │   │   ├── validation.ts     # zod schemas
 │   │   ├── middleware/auth.ts# "require login" middleware
@@ -164,6 +168,32 @@ database needed.
 
 ---
 
+## ☁️ Deploy to Vercel
+
+The whole app (React frontend **and** the API) runs on Vercel as a single
+project: the API is served as a serverless function (`api/index.ts`, which
+reuses the same Express app), and the database is a free **Neon** Postgres.
+Because it's serverless, OTP codes are stored in the DB (not memory) and
+receipt photos are stored in the DB (not on disk).
+
+1. **Create a Neon database** at [neon.tech](https://neon.tech) (free) and
+   copy its **pooled** connection string (looks like
+   `postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`).
+2. **Import this repo** into Vercel (or run `vercel` from the project root).
+   `vercel.json` already sets the build and routing — no framework preset
+   needed.
+3. **Add environment variables** in the Vercel project settings:
+   - `DATABASE_URL` → your Neon pooled connection string
+   - `JWT_SECRET` → any long random string
+4. **Deploy.** The tables are created automatically on the first request.
+   The frontend calls `/api/...` on the same domain, so there's nothing else
+   to configure.
+
+> On Vercel's free tier the request body is capped (~4.5 MB), so receipts are
+> limited to 2 MB (enforced on both client and server).
+
+---
+
 ## 🎨 Design & motion notes
 
 - **Theme:** "ledger paper meets modern fintech."
@@ -182,9 +212,11 @@ database needed.
 
 ## ℹ️ What's mocked / out of scope
 - The OTP is **not** texted — it's printed to the server log (as the brief
-  asked).
+  asked). On the deployed app, open the Vercel function logs to see it.
 - No real SMS provider, no password, single currency (₹ — change it in
   `web/src/lib/format.ts`).
+- Receipts are stored in Postgres and capped at 2 MB (keeps the serverless
+  request body small); a production app would use object storage for big files.
 
 ---
 

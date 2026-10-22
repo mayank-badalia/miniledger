@@ -9,13 +9,13 @@ const router = Router();
 
 // POST /api/auth/request-otp  { phone }
 // Generates a code and prints it to the server log (mock SMS).
-router.post("/request-otp", (req, res) => {
+router.post("/request-otp", async (req, res) => {
   const parsed = requestOtpSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: parsed.error.issues[0].message });
   }
 
-  createOtp(parsed.data.phone);
+  await createOtp(parsed.data.phone);
   res.json({ ok: true, message: "OTP sent — check the server log." });
 });
 
@@ -28,7 +28,7 @@ router.post("/verify-otp", async (req, res) => {
   }
 
   const { phone, code } = parsed.data;
-  if (!verifyOtp(phone, code)) {
+  if (!(await verifyOtp(phone, code))) {
     return res.status(401).json({ error: "That code is wrong or expired." });
   }
 
