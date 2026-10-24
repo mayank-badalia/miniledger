@@ -168,29 +168,26 @@ database needed.
 
 ---
 
-## ☁️ Deploy to Vercel
+## ☁️ Deploying (optional)
 
-The whole app (React frontend **and** the API) runs on Vercel as a single
-project: the API is served as a serverless function (`api/index.ts`, which
-reuses the same Express app), and the database is a free **Neon** Postgres.
-Because it's serverless, OTP codes are stored in the DB (not memory) and
-receipt photos are stored in the DB (not on disk).
+Running locally (above) is all you need to use MiniLedger. If you *do* want
+it online, the repo is already set up to run on Vercel as a single project —
+the API is served as a serverless function (`api/index.ts`, which reuses the
+same Express app) and the frontend calls `/api/...` on the same domain.
 
-1. **Create a Neon database** at [neon.tech](https://neon.tech) (free) and
-   copy its **pooled** connection string (looks like
-   `postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`).
-2. **Import this repo** into Vercel (or run `vercel` from the project root).
-   `vercel.json` already sets the build and routing — no framework preset
-   needed.
-3. **Add environment variables** in the Vercel project settings:
-   - `DATABASE_URL` → your Neon pooled connection string
-   - `JWT_SECRET` → any long random string
-4. **Deploy.** The tables are created automatically on the first request.
-   The frontend calls `/api/...` on the same domain, so there's nothing else
-   to configure.
+The only extra requirement is a **hosted Postgres** (any provider works —
+Neon, Supabase, Railway, your own server…). Then:
 
-> On Vercel's free tier the request body is capped (~4.5 MB), so receipts are
-> limited to 2 MB (enforced on both client and server).
+1. Import this repo into Vercel (or run `vercel`). `vercel.json` already sets
+   the build and routing.
+2. Set two environment variables: `DATABASE_URL` (your Postgres connection
+   string) and `JWT_SECRET` (any long random string).
+3. Deploy — tables are created automatically on the first request.
+
+> Notes: the schema runs on first request, OTP codes and receipts are stored
+> in the database (so it works on serverless), and receipts are capped at 2 MB
+> to stay under serverless request-body limits. Set `DEMO_SHOW_OTP=true` to
+> reveal the login code in the UI (handy for a public demo, insecure by design).
 
 ---
 
